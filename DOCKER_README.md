@@ -32,8 +32,8 @@ This project provides a complete data engineering solution for AdvertiseX, a dig
 
 1. **Clone the repository:**
     ```sh
-    git clone https://github.com/yourusername/advertisex-data-engineering.git
-    cd advertisex-data-engineering
+    git clone https://github.com/LavDeshpande/Advertisex_solution.git
+    cd Advertisex_solution
     ```
 
 2. **Set up the environment:**

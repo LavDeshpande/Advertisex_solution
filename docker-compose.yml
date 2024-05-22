@@ -1,0 +1,93 @@
+version: '3.8'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  hadoop-namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
+    environment:
+      CLUSTER_NAME: hadoop
+    ports:
+      - "9000:9000"
+      - "50070:50070"
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    command: namenode -format && hadoop namenode
+
+  spark-master:
+    image: bde2020/spark-master:2.4.0-hadoop2.7
+    ports:
+      - "8080:8080"
+    environment:
+      SPARK_MODE: master
+    command: bin/spark-class org.apache.spark.deploy.master.Master --ip spark-master --port 7077
+
+  spark-worker:
+    image: bde2020/spark-worker:2.4.0-hadoop2.7
+    depends_on:
+      - spark-master
+    environment:
+      SPARK_MODE: worker
+      SPARK_MASTER: spark://spark-master:7077
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+
+  ingestion-csv:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python data_ingestion/ad_impression_realtime_ingestion.py
+    depends_on:
+      - kafka
+
+  ingestion-json:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python data_ingestion/clicks_and_conversions_batch_ingestion.py
+    depends_on:
+      - kafka
+
+  ingestion-avro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python data_ingestion/bid_request.py
+    depends_on:
+      - kafka
+
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python data_processing/kafka_consumer_with_lag_monitoring.py
+    depends_on:
+      - kafka
+
+  preprocessing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python data_processing/pyspark_data_preprocessing.py
+    depends_on:
+      - consumer
+
+volumes:
+  hadoop_namenode:

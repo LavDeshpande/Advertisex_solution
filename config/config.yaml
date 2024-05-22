@@ -1,0 +1,22 @@
+kafka:
+  bootstrap_servers: localhost:9092
+  topics:
+    csv: clicks_conversions_topic
+    json: ad_impressions_topic
+    avro: bid_requests_topic
+    feedback: feedback_topic
+
+spark:
+  app_name: AdTechPreprocessing
+  master: local[*]
+
+hdfs:
+  url: hdfs://localhost:9000
+  paths:
+    ad_impressions: /path/to/ad_impressions
+    clicks_conversions: /path/to/clicks_conversions
+    bid_requests: /path/to/bid_requests
+    processed: /path/to/processed
+
+hive:
+  warehouse_dir: /user/hive/warehouse

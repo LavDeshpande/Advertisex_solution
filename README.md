@@ -40,7 +40,7 @@ Solution Design.png displays the workflow of the solution/Architecture used
 1. **Clone the repository:**
     ```sh
     git clone https://github.com/LavDeshpande/Advertisex_solution.git
-    cd advertisex-data-engineering
+    cd Advertisex_solution
     ```
 
 2. **Set up the environment:**
